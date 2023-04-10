@@ -4,7 +4,6 @@ information about his/her TODO list progress"""
 import requests
 import sys
 
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(f"UsageError: python3 {__file__} employee_id(int)")
