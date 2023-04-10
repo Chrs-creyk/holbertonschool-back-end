@@ -1,30 +1,35 @@
 #!/usr/bin/python3
-"""
-Script that, using this REST API, for a given employee ID,
-returns information about his/her TODO list progress.
-"""
+"""Script to use a REST API for a given employee ID, returns
+information about his/her TODO list progress"""
 import requests
-from sys import argv
+import sys
 
-if __name__ == '__main__':
-    API_URL = 'https://jsonplaceholder.typicode.com'
 
-    user_id = argv[1]
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print(f"UsageError: python3 {__file__} employee_id(int)")
+        sys.exit(1)
+
+    API_URL = "https://jsonplaceholder.typicode.com"
+    EMPLOYEE_ID = sys.argv[1]
+
     response = requests.get(
-        f'{API_URL}/users/{user_id}/todos',
-        params={'_expand': 'user'}
+        f"{API_URL}/users/{EMPLOYEE_ID}/todos",
+        params={"_expand": "user"}
     )
+    data = response.json()
 
-    if response.status_code == 200:
-        data = response.json()
-        EMPLOYEE_NAME = data[0]['user']['name']
-        fn_task = [task for task in data if task['completed']]
-        NUMBER_OF_DONE_TASKS = len(fn_task)
-        TOTAL_NUMBER_OF_TASKS = len(data)
+    if not len(data):
+        print("RequestError:", 404)
+        sys.exit(1)
 
-        str_first = f'Employee {EMPLOYEE_NAME} is done with tasks'
-        print(f'{str_first}({NUMBER_OF_DONE_TASKS}/{TOTAL_NUMBER_OF_TASKS}):')
-        for task in fn_task:
-            print(f'\t{task["title"]}')
-    else:
-        print(f'Error: {response.status_code}')
+    employee_name = data[0]["user"]["name"]
+    total_tasks = len(data)
+    done_tasks = [task for task in data if task["completed"]]
+    total_done_tasks = len(done_tasks)
+
+    print(f"Employee {employee_name} is done with tasks"
+          f"({total_done_tasks}/{total_tasks}):")
+    for task in done_tasks:
+        print(f"\t {task['title']}")
+
