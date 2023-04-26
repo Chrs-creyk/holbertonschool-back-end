@@ -1,26 +1,42 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee ID."""
+"""Module"""
+
 import json
 import requests
-import sys
 
 
-if __name__ == "__main__":
-    api_url = "https://jsonplaceholder.typicode.com/"
+def get_employee_task(employee_id):
+    """c"""
+    user_url = "https://jsonplaceholder.typicode.com/users/{}" \
+        .format(employee_id)
 
-    users = requests.get(api_url + "users").json()
+    user_info = requests.request('GET', user_url).json()
 
-    dicti = {}
-    for user in users:
-        user_id = user.get("id")
-        todos = requests.get(
-            api_url + "todos", params={"userId": user_id}).json()
+    employee_username = user_info["username"]
+    todos_url = "https://jsonplaceholder.typicode.com/users/{}/todos/" \
+        .format(employee_id)
+    todos_info = requests.request('GET', todos_url).json()
+    return [
+        dict(zip(["task", "completed", "username"],
+                 [task["title"], task["completed"], employee_username]))
+        for task in todos_info]
 
-        dicti[user.get("id")] = [{"task": task.get("title"),
-                                  "completed": task.get("completed"),
-                                  "username": user.get(
-            "username")} for task in todos]
 
-    file_json = "todo_all_employees.json"
-    with open(file_json, "w") as f:
-        json.dump(dicti, f)
+def get_employee_ids():
+    """c"""
+    users_url = "https://jsonplaceholder.typicode.com/users/"
+
+    users_info = requests.request('GET', users_url).json()
+    ids = list(map(lambda user: user["id"], users_info))
+    return ids
+
+
+if __name__ == '__main__':
+
+    employee_ids = get_employee_ids()
+
+    with open('todo_all_employees.json', "w") as file:
+        all_users = {}
+        for employee_id in employee_ids:
+            all_users[str(employee_id)] = get_employee_task(employee_id)
+        file.write(json.dumps(all_users))
