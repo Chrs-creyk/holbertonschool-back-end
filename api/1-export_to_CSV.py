@@ -1,37 +1,23 @@
 #!/usr/bin/python3
-"""
-Extend your Python script to export data in the CSV format.
-"""
-import csv
+"""Returns to-do list information for a given employee ID."""
 import requests
-from sys import argv
+import sys
+import pandas as pd
 
-if __name__ == '__main__':
-    API_URL = 'https://jsonplaceholder.typicode.com'
+if __name__ == "__main__":
+    api_url = "https://jsonplaceholder.typicode.com/"
+    user = requests.get(api_url + "users/{}".format(sys.argv[1])).json()
+    todos = requests.get(
+        api_url + "todos", params={"userId": sys.argv[1]}).json()
 
-    user_id = argv[1]
-    response = requests.get(
-        f'{API_URL}/users/{user_id}/todos',
-        params={'_expand': 'user'}
-    )
+    tasks_df = pd.DataFrame(
+        todos, columns=["userId", "id", "title", "completed"])
 
-    if response.status_code == 200:
-        data = response.json()
-        EMPLOYEE_NAME = data[0]['user']['username']
-        fn_task = [task for task in data if task['completed']]
+    user_df = pd.DataFrame(data=[user], columns=[
+                           "id", "name", "username", "email", "address", "phone", "website", "company"])
 
-        with open(f'{user_id}.csv', 'w',
-                  encoding='utf-8', newline='') as file:
-            wr = csv.writer(file, quoting=csv.QUOTE_ALL)
+    merged_df = pd.merge(tasks_df, user_df, on="id", how="outer")[
+        ["id", "username", "completed", "title"]]
 
-            for task in data:
-                wr.writerow(
-                    [
-                        f'{user_id}',
-                        f'{EMPLOYEE_NAME}',
-                        f'{task["completed"]}',
-                        f'{task["title"]}'
-                    ]
-                )
-    else:
-        print(f'Error: {response.status_code}')
+    filename = str(user.get("git")) + ".csv"
+    merged_df.to_csv(filename, index=False)

@@ -1,35 +1,26 @@
 #!/usr/bin/python3
-"""
-Extend your Python script to export data in the JSON format.
-"""
+"""Returns to-do list information for a given employee ID."""
 import json
 import requests
-from sys import argv
+import sys
 
-if __name__ == '__main__':
-    API_URL = 'https://jsonplaceholder.typicode.com'
 
-    response = requests.get(
-        f'{API_URL}/todos',
-        params={'_expand': 'user'}
-    )
+if __name__ == "__main__":
+    api_url = "https://jsonplaceholder.typicode.com/"
 
-    if response.status_code == 200:
-        data = response.json()
-        dictionary = dict()
+    users = requests.get(api_url + "users").json()
 
-        for task in data:
-            dictionary[task['userId']] = []
+    dicti = {}
+    for user in users:
+        user_id = user.get("id")
+        todos = requests.get(
+            api_url + "todos", params={"userId": user_id}).json()
 
-        with open('todo_all_employees.json', 'w',
-                  encoding='utf-8') as file:
-            for task in data:
-                actual_dr = {
-                    'task': task['title'],
-                    'completed': task['completed'],
-                    'username': task['user']['username']
-                }
-                dictionary[task['userId']].append(actual_dr)
-            json.dump(dictionary, file, indent=4)
-    else:
-        print(f'Error: {response.status_code}')
+        dicti[user.get("id")] = [{"task": task.get("title"),
+                                  "completed": task.get("completed"),
+                                  "username": user.get(
+            "username")} for task in todos]
+
+    file_json = "todo_all_employees.json"
+    with open(file_json, "w") as f:
+        json.dump(dicti, f)
