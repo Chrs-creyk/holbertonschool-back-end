@@ -3,7 +3,9 @@
 import pandas as pd
 import requests
 import sys
-
+'''API stands for Application Programming Interface.
+It is a set of rules that allow two applications to
+communicate with each other.'''
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(f"UsageError: python3 {__file__} employee_id(int)")
