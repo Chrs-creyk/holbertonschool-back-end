@@ -3,33 +3,23 @@
 import pandas as pd
 import requests
 import sys
-'''API stands for Application Programming Interface.
-It is a set of rules that allow two applications to
-communicate with each other.'''
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print(f"UsageError: python3 {__file__} employee_id(int)")
-        sys.exit(1)
+'''data analysis'''
+if __name__ == '__main__':
+    reponse = requests.get('https://jsonplaceholder.typicode.com/todos/')
+    '''data analysis'''
+    data = pd.read_json(reponse.text)
+    total_number_of_task = len(data[data['userId'] == int(sys.argv[1])])
+    completed = len(data[(data['userId'] == int(
+        sys.argv[1])) & (data['completed'] == True)])
 
-    API_URL = "https://jsonplaceholder.typicode.com"
-    EMPLOYEE_ID = sys.argv[1]
+    reponse2 = requests.get('https://jsonplaceholder.typicode.com/users/')
+    data2 = pd.read_json(reponse2.text)
+    employee_name = data2[data2['id'] == int(sys.argv[1])]['name'].values[0]
+    task_title = list(data[(data['userId'] == int(sys.argv[1])) & (
+        data['completed'] == True)]['title'])
 
-    response = requests.get(
-        f"{API_URL}/users/{EMPLOYEE_ID}/todos",
-        params={"_expand": "user"}
-    )
-    data = response.json()
+    print("Employee {} is done with tasks({}/{}):".format(employee_name,
+          completed, total_number_of_task))
 
-    if not len(data):
-        print("RequestError:", 404)
-        sys.exit(1)
-
-    employee_name = data[0]["user"]["name"]
-    total_tasks = len(data)
-    done_tasks = [task for task in data if task["completed"]]
-    total_done_tasks = len(done_tasks)
-
-    print(f"Employee {employee_name} is done with tasks"
-          f"({total_done_tasks}/{total_tasks}):")
-    for task in done_tasks:
-        print(f"\t {task['title']}")
+    for i in task_title:
+        print("\t {}".format(i))
