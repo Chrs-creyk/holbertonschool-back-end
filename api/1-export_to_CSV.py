@@ -1,21 +1,20 @@
 #!/usr/bin/python3
-"""Module"""
-
-import csv
+"""Returns to-do list information for a given employee ID."""
 import requests
 import sys
 
+if name == "main":
+    api_url = "https://jsonplaceholder.typicode.com/"
+    user = requests.get(api_url + "users/{}".format(sys.argv[1])).json()
+    todos = requests.get(
+        api_url + "todos", params={"userId": sys.argv[1]}).json()
 
-if __name__ == '__main__':
-    user_id = sys.argv[1]
-    user_url = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
-    todos_url = user_url + "/todos/"
+    nameFile = str(eval(sys.argv[1])) + ".csv"
 
-    user_info = requests.request('GET', user_url).json()
-    todos_info = requests.request('GET', todos_url).json()
-
-    with open('{}.csv'.format(user_id), 'w') as csvfile:
-        csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        [csvwriter.writerow([user_id, user_info["username"],
-                             task["completed"], task["title"]])
-         for task in todos_info]
+    f = open(nameFile, "x")
+    for task in todos:
+        s = '"' + str(user.get("id")) + '","' + str(
+            user.get("username")) + '","' + str(
+                task.get("completed")) + '","' + str(
+                    task.get("title")) + '"\n'
+        f.write(s)
