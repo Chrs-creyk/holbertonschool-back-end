@@ -1,20 +1,33 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee ID."""
+'''export data in the CSV format.'''
+import csv
 import requests
-import sys
+from sys import argv
 
-if name == "main":
-    api_url = "https://jsonplaceholder.typicode.com/"
-    user = requests.get(api_url + "users/{}".format(sys.argv[1])).json()
-    todos = requests.get(
-        api_url + "todos", params={"userId": sys.argv[1]}).json()
+if __name__ == '__main__':
+    user_id = argv[1]
+    url = 'https://jsonplaceholder.typicode.com'
+    response = requests.get(
+        f'{url}/users/{user_id}/todos',
+        params={'_expand': 'user'}
+    )
 
-    nameFile = str(eval(sys.argv[1])) + ".csv"
+    if response.status_code == 200:
+        data = response.json()
+        user_name = data[0]['user']['username']
 
-    f = open(nameFile, "x")
-    for task in todos:
-        s = '"' + str(user.get("id")) + '","' + str(
-            user.get("username")) + '","' + str(
-                task.get("completed")) + '","' + str(
-                    task.get("title")) + '"\n'
-        f.write(s)
+        with open(f'{user_id}.csv', 'w',
+                  encoding='utf-8', newline='') as file:
+            wr = csv.writer(file, quoting=csv.QUOTE_ALL)
+            for task in data:
+                wr.writerow(
+                    [
+                        f'{user_id}',
+                        f'{user_name}',
+                        f'{task["completed"]}',
+                        f'{task["title"]}'
+                    ]
+                )
+
+    else:
+        print(f"Error: {response.status_code}")
