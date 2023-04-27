@@ -1,42 +1,33 @@
 #!/usr/bin/python3
-"""Module"""
-
+'''export data in the CSV format.'''
 import json
 import requests
-
-
-def get_employee_task(employee_id):
-    """c"""
-    user_url = "https://jsonplaceholder.typicode.com/users/{}" \
-        .format(employee_id)
-
-    user_info = requests.request('GET', user_url).json()
-
-    employee_username = user_info["username"]
-    todos_url = "https://jsonplaceholder.typicode.com/users/{}/todos/" \
-        .format(employee_id)
-    todos_info = requests.request('GET', todos_url).json()
-    return [
-        dict(zip(["task", "completed", "username"],
-                 [task["title"], task["completed"], employee_username]))
-        for task in todos_info]
-
-
-def get_employee_ids():
-    """c"""
-    users_url = "https://jsonplaceholder.typicode.com/users/"
-
-    users_info = requests.request('GET', users_url).json()
-    ids = list(map(lambda user: user["id"], users_info))
-    return ids
-
+from sys import argv
 
 if __name__ == '__main__':
+    url = 'https://jsonplaceholder.typicode.com'
+    response = requests.get(
+        f'{url}/todos',
+        params={'_expand': 'user'}
+    )
 
-    employee_ids = get_employee_ids()
+    if response.status_code == 200:
+        data = response.json()
+        dictionary = dict()
 
-    with open('todo_all_employees.json', "w") as file:
-        all_users = {}
-        for employee_id in employee_ids:
-            all_users[str(employee_id)] = get_employee_task(employee_id)
-        file.write(json.dumps(all_users))
+        for task in data:
+            dictionary[task['userId']] = []
+
+        with open('todo_all_employees.json', 'w',
+                  encoding='utf-8') as file:
+            for task in data:
+                actual_dict = {
+                    'username': task['user']['username'],
+                    'task': task['title'],
+                    'completed': task['completed']
+                }
+                dictionary[task['userId']].append(actual_dict)
+            json.dump(dictionary, file, indent=4)
+
+    else:
+        print(f"Error: {response.status_code}")
