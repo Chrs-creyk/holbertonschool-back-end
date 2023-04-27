@@ -1,25 +1,28 @@
 #!/usr/bin/python3
-"""Module"""
-
+'''returns information about his/her TODO list progress.'''
 import requests
-import sys
-
+from sys import argv
 
 if __name__ == '__main__':
-    user_id = sys.argv[1]
-    user_url = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
-    todos_url = user_url + "/todos/"
+    url = 'https://jsonplaceholder.typicode.com'
+    user_id = argv[1]
+    response = requests.get(
+        f'{url}/users/{user_id}/todos',
+        params={'_expand': 'user'}
+    )
 
-    user_info = requests.request('GET', user_url).json()
-    todos_info = requests.request('GET', todos_url).json()
+    if response.status_code == 200:
+        data = response.json()
+        name = data[0]['user']['name']
+        tasks_ok = [task for task in data if task['completed']]
+        n_task_ok = len(tasks_ok)
+        total_task = len(data)
 
-    emp_name = user_info["name"]
-    task_completed = list(filter(lambda obj:
-                                 (obj["completed"] is True), todos_info))
-    number_tasks = len(task_completed)
-    total_tasks = len(todos_info)
+        first_str = f"Employee {name} is done with tasks"
 
-    print("Employee {} is done with tasks({}/{}):".
-          format(emp_name, number_tasks, total_tasks))
+        print(f"{first_str}({n_task_ok}/{total_task}):")
+        for task in tasks_ok:
+            print(f"\t {task['title']}")
 
-    [print("\t " + task["title"]) for task in task_completed]
+    else:
+        print(f"Error: {response.status_code}")
