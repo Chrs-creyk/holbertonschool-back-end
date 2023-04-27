@@ -1,21 +1,31 @@
 #!/usr/bin/python3
-"""Module"""
-
+'''export data in the CSV format.'''
 import json
 import requests
-import sys
-
+from sys import argv
 
 if __name__ == '__main__':
-    user_id = sys.argv[1]
-    user_url = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
-    todos_url = user_url + "/todos/"
+    user_id = argv[1]
+    url = 'https://jsonplaceholder.typicode.com'
+    response = requests.get(
+        f'{url}/users/{user_id}/todos',
+        params={'_expand': 'user'}
+    )
 
-    user_info = requests.request('GET', user_url).json()
-    todos_info = requests.request('GET', todos_url).json()
+    if response.status_code == 200:
+        data = response.json()
+        dict = {user_id: []}
 
-    with open('{}.json'.format(user_id), 'w') as jsonfile:
-        json.dump({user_id: [{"task": task["title"],
-                              "completed": task["completed"],
-                              "username": user_info["username"]}
-                             for task in todos_info]}, jsonfile)
+        with open(f'{user_id}.json', 'w',
+                  encoding='utf-8') as file:
+            for task in data:
+                actual_dict = {
+                    'task': task['title'],
+                    'completed': task['completed'],
+                    'username': task['user']['username']
+                }
+                dict[user_id].append(actual_dict)
+            json.dump(dict, file)
+
+    else:
+        print(f"Error: {response.status_code}")
