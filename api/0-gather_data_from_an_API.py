@@ -3,7 +3,7 @@
 import requests
 import sys
 
-if name == "main":
+if __name__ == "main":
     api_url = "https://jsonplaceholder.typicode.com/"
     user = requests.get(api_url + "users/{}".format(sys.argv[1])).json()
     todos = requests.get(
